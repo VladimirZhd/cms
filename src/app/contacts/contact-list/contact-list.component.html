@@ -11,7 +11,9 @@
         <div class="panel-body">
             <div class="row">
                 <div class="col-xs-12 margin-top">
-                    <cms-contact-item *ngFor="let contact of contacts" [contact]="contact"></cms-contact-item>
+                    <cms-contact-item *ngFor="let contact of contacts" [contact]="contact"
+                        (click)="onSelected(contact)">
+                    </cms-contact-item>
                 </div>
             </div>
         </div>
