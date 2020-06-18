@@ -4,7 +4,8 @@
             <div class="panel-heading clearfix">
                 <h2>{{ contact?.name }}</h2>
                 <div class="pull-left">
-                    <img [src]="contact?.imageUrl" alt="{{contact?.name}}" class="img-responsive">
+                    <img [src]="contact?.imageUrl" alt="{{contact?.name}}" class="img-responsive"
+                        *ngIf="contact.imageUrl">
                 </div>
                 <div class="pull-right btn-toolbar">
                     <a routerLink='edit' class="btn btn-primary">Edit</a>

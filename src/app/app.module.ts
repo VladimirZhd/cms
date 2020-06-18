@@ -43,7 +43,6 @@ import { DndModule } from 'ng2-dnd'
   ],
   imports: [BrowserModule, FormsModule, AppRoutingModule, DndModule.forRoot()],
   providers: [WindRefService],
-  bootstrap: [AppComponent],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  bootstrap: [AppComponent]
 })
 export class AppModule { }
