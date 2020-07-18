@@ -27,10 +27,9 @@ export class ContactService {
   }
 
   getContacts(): Contact[] {
-    this.http.get('https://cms-wdd430-b3029.firebaseio.com/contacts.json').subscribe(
-      (contacts: Contact[]) => {
-        this.contacts = contacts;
-        this.contactMaxId = this.getMaxId();
+    this.http.get<{ message: string, contacts: Contact[] }>('http://localhost:3000/contacts').subscribe(
+      (responseData) => {
+        this.contacts = responseData.contacts;
         this.contacts.sort((a, b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0));
         this.contactChangeEvent.next(this.contacts.slice());
       }
@@ -38,7 +37,16 @@ export class ContactService {
     return this.contacts.slice();
   }
 
-  getContact(id: string): Contact {
+  getContact(id: string) {
+    // let contact: Contact;
+    // console.log(id);
+    // this.http.get<{ message: string, contact: Contact }>('http://localhost:3000/contacts' + id).subscribe(
+    //   (res) => {
+    //     contact = res.contact;
+    //     console.log(res.contact);
+    //   }
+    // )
+    // return contact;
     for (let contact of this.contacts) {
       if (contact.id == id) {
         return contact;
@@ -52,13 +60,18 @@ export class ContactService {
       return;
     }
 
-    const pos = this.contacts.indexOf(contact);
+    const pos = this.contacts.findIndex(c => c.id === contact.id);
     if (pos < 0) {
       return;
     }
 
-    this.contacts.splice(pos, 1);
-    this.storeContacts();
+    this.http.delete('http://localhost:3000/contacts/' + contact.id).subscribe(
+      () => {
+        this.contacts.splice(pos, 1);
+        this.contacts.sort((a, b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0));
+        this.contactChangeEvent.next(this.contacts.slice());
+      }
+    )
   }
 
   addContact(newContact: Contact) {
@@ -66,12 +79,17 @@ export class ContactService {
       return;
     }
 
-    this.contactMaxId++;
-    newContact.id = this.contactMaxId.toString();
-    this.contacts.push(newContact);
-    let contactsListClone = this.contacts.slice();
-    this.contactChangeEvent.next(contactsListClone);
-    this.storeContacts();
+    newContact.id = "";
+
+    const headers = new HttpHeaders({ 'Content-type': 'application/json' });
+
+    this.http.post<{ message: string, contact: Contact }>('http://localhost:3000/contacts', newContact, { headers: headers }).subscribe(
+      (responseData) => {
+        this.contacts.push(responseData.contact);
+        this.contacts.sort((a, b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0));
+        this.contactChangeEvent.next(this.contacts.slice());
+      }
+    )
   }
 
   updateContact(originalContact: Contact, newContact: Contact) {
@@ -79,17 +97,23 @@ export class ContactService {
       return;
     }
 
-    let pos = this.contacts.indexOf(originalContact);
+    let pos = this.contacts.findIndex(c => c.id === originalContact.id);
 
     if (pos < 0) {
       return;
     }
 
     newContact.id = originalContact.id;
-    this.contacts[pos] = newContact;
-    const contactsListClone = this.contacts.slice();
-    this.contactChangeEvent.next(contactsListClone);
-    this.storeContacts();
+
+    const headers = new HttpHeaders({ 'Content-type': 'application/json' });
+
+    this.http.put("http://localhost:3000/contacts/" + originalContact.id, newContact, { headers: headers }).subscribe(
+      () => {
+        this.contacts[pos] = newContact;
+        this.contacts.sort((a, b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0));
+        this.contactChangeEvent.next(this.contacts.slice());
+      }
+    )
   }
 
   getMaxId() {
